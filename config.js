@@ -9,7 +9,7 @@ window.AZTLAN_CONFIG = {
   SP_HOST: 'aztlanem.sharepoint.com',
   SP_SITE_PATH: '/sites/PlataformaESG',
   // Opcional (recomendado): la plataforma te lo muestra la primera vez que entras como administradora.
-  DRIVE_ID: '',
+  DRIVE_ID: 'b!iNZtKmAackeyTz3KgCFalwNwZV-WyZlDnUVWup7YNSnP38gOanwLRJSiqp3w2-9A',
   // Dirección pública de la plataforma
   APP_URL: 'https://fabiolapastran.github.io/plataforma-esg/',
 };
