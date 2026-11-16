@@ -1310,7 +1310,7 @@ function vInicio() {
     ['plan', 'Asigna responsables al plan', Object.keys(d.plan || {}).length > 0],
   ];
   const canSubmit = S.role === 'client' && r.completion >= 0.6 && (d.status || 'captura') === 'captura' && !rv.status;
-  return head(named ? esc(named) : 'Bienvenida a tu evaluación ESG', named ? `${esc(d.profile.sector || '')} · ${statusLabel(d, rv)}` : 'Completa tu perfil y el due diligence para obtener tu calificación, plan de trabajo e instrucciones para mejorar.') + `
+  return head(named ? esc(named) : 'Tu evaluación ESG', named ? `${esc(d.profile.sector || '')} · ${statusLabel(d, rv)}` : 'Completa tu perfil y el due diligence para obtener tu calificación, plan de trabajo e instrucciones para mejorar.') + `
   <section class="hero">
     <div class="hero-score">
       <label>Calificación ESG combinada</label>
@@ -2085,7 +2085,7 @@ const SP = (() => {
   // ---------- pantallas propias (inicio de sesión, error)
   function screen(html) { document.getElementById('app').innerHTML = `<div class="login"><img src="${LOGO_FULL}" alt="Aztlan" class="login-logo"><div class="login-card">${html}</div><p class="muted small">Plataforma ESG · Metodología propietaria Aztlan</p></div>`; }
   function loginScreen(note) {
-    screen(`<h1>Bienvenida a la plataforma ESG</h1><p>Inicia sesión con tu cuenta de Microsoft o con el correo con el que Aztlan te invitó. Si tu correo no es de Microsoft, recibirás un código de acceso.</p>
+    screen(`<h1>Plataforma ESG Aztlan</h1><p>Inicia sesión con tu cuenta de Microsoft o con el correo con el que Aztlan te invitó. Si tu correo no es de Microsoft, recibirás un código de acceso.</p>
       ${note ? `<div class="note">${esc(note)}</div>` : ''}<button class="btn big" id="loginBtn">Iniciar sesión</button>`);
     document.getElementById('loginBtn').onclick = () => msalApp.loginRedirect({ scopes: SCOPES, prompt: 'select_account' });
   }
