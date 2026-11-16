@@ -1212,7 +1212,7 @@ function scoreNum(v, cls) { return `<span class="num ${cls||''}">${fmt(v)}</span
 function pillarOf(id) { return PILLARS.find(p => p.id === id); }
 function statusLabel(d, rv) {
   const st = rv?.status || d?.status || 'captura';
-  const m = { captura: ['En captura', '#8E8BB3'], enviado: ['Enviado a revisión', '#F08C2E'], 'en revisión': ['En revisión del consultor', '#9AAACB'], validado: ['Validado', '#5BAE7E'], observaciones: ['Con observaciones', '#E5484D'] };
+  const m = { captura: ['En captura', '#8E8BB3'], enviado: ['Enviado a revisión', '#F08C2E'], 'en revisión': ['En revisión de Aztlan', '#9AAACB'], validado: ['Validado', '#5BAE7E'], observaciones: ['Con observaciones', '#E5484D'] };
   const x = m[st] || m.captura; return `<span class="chip sm" style="--c:${x[1]}"><i></i>${x[0]}</span>`;
 }
 
@@ -1226,7 +1226,7 @@ function render() {
   if (S.role === 'admin') nav.push(['cartera', 'Cartera de clientes', 'grid']);
   if (inCompany) {
     nav.push(['pendientes', S.role === 'admin' ? 'Mensajes y pendientes' : 'Mensajes y pendientes', 'chat'], ['inicio', 'Resumen', 'home'], ['perfil', 'Perfil de empresa', 'id'], ['dd', 'Due diligence', 'list'], ['score', 'Calificación ESG', 'chart'], ['semaforo', 'Matriz Semáforo', 'dots'], ['plan', 'Plan de trabajo', 'flag'], ['normativo', 'Cumplimiento México', 'scale'], ['contro', 'Controversias', 'alert']);
-    if (S.role === 'admin') nav.push(['revision', 'Revisión del consultor', 'check']);
+    if (S.role === 'admin') nav.push(['revision', 'Revisión de Aztlan', 'check']);
   }
   nav.push(['metodo', 'Metodología', 'book']);
   const who = S.role === 'admin' ? 'Administrador' : 'Cliente';
@@ -1293,7 +1293,7 @@ function vCartera() {
     ${list.map(x => `<tr class="click" data-a="open" data-id="${esc(x.id)}"><td><b>${esc(x.d.profile?.name || 'Sin nombre')}</b>${x.id === 'demo' ? ' <span class="chip sm muted">ejemplo</span>' : ''}</td><td>${esc(x.d.profile?.sector || '—')}</td><td>${statusLabel(x.d, x.rv)}</td><td class="r">${Math.round(x.r.completion * 100)}%</td><td class="r">${fmt(x.r.esg)}</td><td class="r">${fmt(x.r.contro)}</td><td class="r"><b>${fmt(x.r.combined)}</b></td><td>${badge(rating(x.r.combined), 1)}</td><td class="c">${(() => { const n = pendAdmin(x.d, x.rv || {}).total; return n ? `<em class="nbadge inl">${n}</em>` : '<span class="muted">—</span>'; })()}</td><td>${esc(x.d.updatedAt || '')}</td></tr>`).join('')}
     </tbody></table>` : `<div class="empty">Aún no hay empresas. ${S.mode === 'live' ? 'Comparte esta plataforma con tus clientes como <b>Colaborador (Contributor)</b> desde el botón Compartir; cada uno verá solo su propio perfil.' : ''}</div>`}
   </div>
-  ${S.backend === 'sp' ? SP.inviteCard() : ''}${S.mode === 'live' && S.backend !== 'sp' ? `<div class="card soft"><h3>Cómo invitar a un cliente</h3><ol class="steps"><li>El botón <b>Compartir</b> (o <b>Share</b>) no está dentro de la plataforma: está en la <b>barra superior de Claude</b>, arriba a la derecha de esta página. Si no lo ves, abre la plataforma en su propia pestaña con el enlace de abajo.</li><li>Escribe el correo del cliente y elige el nivel <b>Colaborador</b> (Contributor). Así puede llenar su due diligence pero no ve a otras empresas. No uses “Lector”: con ese nivel no puede guardar.</li><li>Si alguien de tu equipo será consultor, invítalo como <b>Editor</b>: verá la cartera completa y podrá validar evidencias.</li><li>Envíale al cliente el enlace de la plataforma.</li></ol><div class="linkrow"><code>${PLATFORM_URL}</code><button class="btn" data-a="copylink">Copiar enlace</button><a class="btn ghost" href="${PLATFORM_URL}" target="_blank" rel="noopener">Abrir en pestaña nueva</a></div><button class="btn ghost" data-a="loaddemo">Ver empresa de ejemplo (GTA Telecom)</button></div>` : ''}`;
+  ${S.backend === 'sp' ? SP.inviteCard() : ''}${S.mode === 'live' && S.backend !== 'sp' ? `<div class="card soft"><h3>Cómo invitar a un cliente</h3><ol class="steps"><li>El botón <b>Compartir</b> (o <b>Share</b>) no está dentro de la plataforma: está en la <b>barra superior de Claude</b>, arriba a la derecha de esta página. Si no lo ves, abre la plataforma en su propia pestaña con el enlace de abajo.</li><li>Escribe el correo del cliente y elige el nivel <b>Colaborador</b> (Contributor). Así puede llenar su due diligence pero no ve a otras empresas. No uses “Lector”: con ese nivel no puede guardar.</li><li>Si alguien de tu equipo de Aztlan revisará, invítalo como <b>Editor</b>: verá la cartera completa y podrá validar evidencias.</li><li>Envíale al cliente el enlace de la plataforma.</li></ol><div class="linkrow"><code>${PLATFORM_URL}</code><button class="btn" data-a="copylink">Copiar enlace</button><a class="btn ghost" href="${PLATFORM_URL}" target="_blank" rel="noopener">Abrir en pestaña nueva</a></div><button class="btn ghost" data-a="loaddemo">Ver empresa de ejemplo (GTA Telecom)</button></div>` : ''}`;
 }
 
 // ---------- INICIO
@@ -1331,9 +1331,9 @@ function vInicio() {
   ${r.completion < 0.6 ? `<div class="note">La calificación cuenta las preguntas sin respuesta como cero. Responde al menos el 60% del cuestionario para obtener una calificación representativa.</div>` : ''}
   <div class="grid2">
     <div class="card"><h3>Siguientes pasos</h3><ul class="checklist">${steps.map(([v, t, ok]) => `<li class="${ok ? 'ok' : ''}"><button class="link" data-a="go" data-v="${v}">${ok ? '✓' : '○'} ${t}</button></li>`).join('')}</ul>
-    ${canSubmit ? `<button class="btn" data-a="submit">Enviar a revisión del consultor</button>` : ''}
+    ${canSubmit ? `<button class="btn" data-a="submit">Enviar a revisión de Aztlan</button>` : ''}
     ${S.role === 'client' && (d.status === 'enviado' || rv.status) ? `<p class="muted small">Tu evaluación fue enviada. Puedes seguir actualizando respuestas y el plan.</p>` : ''}
-    ${rv.notes ? `<div class="consultant"><label>Comentarios del consultor</label><p>${esc(rv.notes).replace(/\n/g, '<br>')}</p></div>` : ''}
+    ${rv.notes ? `<div class="consultant"><label>Comentarios de Aztlan</label><p>${esc(rv.notes).replace(/\n/g, '<br>')}</p></div>` : ''}
     </div>
     <div class="card"><h3>Las 5 acciones que más suben tu calificación</h3>
       ${top.length ? `<ol class="toplist">${top.map(i => `<li><div><b>${esc(i.action)}</b><span class="muted small">${esc(THEME[i.theme].name)} · ${PHASES[i.phase].when}${i.legal ? ' · <span class="legal">Obligación legal</span>' : ''}</span></div><span class="up">+${fmt(i.uplift, 2)}</span></li>`).join('')}</ol>` : '<p class="muted">Sin brechas pendientes. ¡Excelente!</p>'}
@@ -1382,7 +1382,7 @@ function vDD() {
     const tq = Q.filter(q => q.t === x.id && applies(q, d.profile)); const done = tq.filter(q => { const a = d.answers?.[q.id]; return a && a.v !== undefined && a.v !== ''; }).length;
     return `<button class="ddt ${x.id === t.id ? 'on' : ''}" data-a="ddtheme" data-t="${x.id}"><span>${x.name}${spark(r.themes[x.id].score)}</span><em class="${done === tq.length ? 'full' : ''}">${done}/${tq.length}</em></button>`; }).join('')}</div>`).join('');
   const idx = THEMES.findIndex(x => x.id === t.id);
-  return head('Due diligence ESG', 'Responde con la mayor honestidad posible y agrega evidencia (enlace a SharePoint/Drive o nombre del documento). Una respuesta “Sí” sin evidencia vale 75%; validada por el consultor vale 100%.', `<div class="mini-prog"><div style="width:${r.completion * 100}%"></div></div><span class="muted small">${Math.round(r.completion * 100)}% completo</span>`) + `
+  return head('Due diligence ESG', 'Responde con la mayor honestidad posible y agrega evidencia (enlace a SharePoint/Drive o nombre del documento). Una respuesta “Sí” sin evidencia vale 75%; validada por Aztlan vale 100%.', `<div class="mini-prog"><div style="width:${r.completion * 100}%"></div></div><span class="muted small">${Math.round(r.completion * 100)}% completo</span>`) + `
   <div class="dd">
     <div class="ddnav">${tabs}</div>
     <div class="ddq">
@@ -1419,8 +1419,8 @@ function qCard(q, i, d, rv, ro, isAdmin) {
     <div class="files">${fileChips(q.id, a, ro)}${!ro ? uploadCtl(q.id) : ''}</div>
     ${q.k !== 'num' ? `<label class="pubchk"><input type="checkbox" data-pub="${q.id}" ${a.pub ? 'checked' : ''} ${dis}> Se comunica públicamente (informe, sitio web o inversionistas)</label>` : ''}
     ${threadBox(q.id, d, rv)}
-    ${isAdmin ? `<div class="val"><span>Validación del consultor:</span><button class="opt sm ${val.s === 'ok' ? 'on si' : ''}" data-a="val" data-q="${q.id}" data-v="ok">✓ Evidencia válida</button><button class="opt sm ${val.s === 'rej' ? 'on no' : ''}" data-a="val" data-q="${q.id}" data-v="rej">✗ Insuficiente</button><button class="opt sm" data-a="val" data-q="${q.id}" data-v="">Limpiar</button><input class="ev" data-valc="${q.id}" value="${esc(val.c || '')}" placeholder="Comentario para el cliente"></div>`
-      : (val.s ? `<div class="valc ${val.s}">${val.s === 'ok' ? '✓ Validado por el consultor' : '✗ El consultor marcó la evidencia como insuficiente'}${val.c ? ': ' + esc(val.c) : ''}</div>` : '')}
+    ${isAdmin ? `<div class="val"><span>Validación de Aztlan:</span><button class="opt sm ${val.s === 'ok' ? 'on si' : ''}" data-a="val" data-q="${q.id}" data-v="ok">✓ Evidencia válida</button><button class="opt sm ${val.s === 'rej' ? 'on no' : ''}" data-a="val" data-q="${q.id}" data-v="rej">✗ Insuficiente</button><button class="opt sm" data-a="val" data-q="${q.id}" data-v="">Limpiar</button><input class="ev" data-valc="${q.id}" value="${esc(val.c || '')}" placeholder="Comentario para el cliente"></div>`
+      : (val.s ? `<div class="valc ${val.s}">${val.s === 'ok' ? '✓ Validado por Aztlan' : '✗ Aztlan marcó la evidencia como insuficiente'}${val.c ? ': ' + esc(val.c) : ''}</div>` : '')}
   </div>`;
 }
 
@@ -1466,7 +1466,7 @@ function vScore() {
       </div>
       <div class="card">
         <h3>Historial</h3>
-        ${histChart(hist)}${hist.length ? `<table class="lt"><thead><tr><th>Fecha</th><th>Tipo</th><th class="r">E</th><th class="r">S</th><th class="r">G</th><th class="r">Combinada</th></tr></thead><tbody>${hist.map(h => `<tr><td>${esc(h.date)}</td><td>${esc(h.kind || '')}</td><td class="r">${fmt(h.E)}</td><td class="r">${fmt(h.S)}</td><td class="r">${fmt(h.G)}</td><td class="r"><b>${fmt(h.comb)}</b></td></tr>`).join('')}</tbody></table>` : '<p class="muted">Se guarda una foto de la calificación cada vez que se envía a revisión o el consultor la valida.</p>'}
+        ${histChart(hist)}${hist.length ? `<table class="lt"><thead><tr><th>Fecha</th><th>Tipo</th><th class="r">E</th><th class="r">S</th><th class="r">G</th><th class="r">Combinada</th></tr></thead><tbody>${hist.map(h => `<tr><td>${esc(h.date)}</td><td>${esc(h.kind || '')}</td><td class="r">${fmt(h.E)}</td><td class="r">${fmt(h.S)}</td><td class="r">${fmt(h.G)}</td><td class="r"><b>${fmt(h.comb)}</b></td></tr>`).join('')}</tbody></table>` : '<p class="muted">Se guarda una foto de la calificación cada vez que se envía a revisión o Aztlan la valida.</p>'}
       </div>
     </div>
   </div>
@@ -1540,13 +1540,13 @@ function vContro() {
   const r = compute(d, rv);
   const isAdmin = S.role === 'admin';
   const ro = isAdmin && S.cid !== 'demo' && S.mode === 'live';
-  const row = (c, i, src) => `<tr><td>${esc(c.year || '')}</td><td>${esc(THEME[c.theme]?.name || '')}</td><td>${esc(SEVERITY.find(s => s.id === c.sev)?.name || '')}</td><td>${esc(c.desc || '')}</td><td>${c.status === 'resuelta' ? 'Resuelta' : 'Abierta'}</td><td class="muted small">${src}</td><td>${(src === 'Empresa' && !ro) || (src === 'Consultor' && isAdmin) ? `<button class="link" data-a="delcontro" data-src="${src}" data-i="${i}">Eliminar</button>` : ''}</td></tr>`;
+  const row = (c, i, src) => `<tr><td>${esc(c.year || '')}</td><td>${esc(THEME[c.theme]?.name || '')}</td><td>${esc(SEVERITY.find(s => s.id === c.sev)?.name || '')}</td><td>${esc(c.desc || '')}</td><td>${c.status === 'resuelta' ? 'Resuelta' : 'Abierta'}</td><td class="muted small">${src}</td><td>${(src === 'Empresa' && !ro) || (src === 'Aztlan' && isAdmin) ? `<button class="link" data-a="delcontro" data-src="${src}" data-i="${i}">Eliminar</button>` : ''}</td></tr>`;
   const canAdd = !ro || isAdmin;
   return head('Controversias e incidentes', 'Multas o sanciones (PROFEPA, STPS, SAT, PROFECO, CONAGUA), demandas, accidentes graves, brechas de datos o notas de prensa negativas de los últimos 3 años. Declararlas con su plan de remediación es mejor práctica: las resueltas penalizan la mitad.') + `
   <section class="kpis"><div class="kpi"><label>Puntuación de controversias</label><b>${fmt(r.contro)}</b>${badge(rating(r.contro), 1)}</div><div class="kpi"><label>Registradas</label><b>${r.contros.length}</b></div></section>
   <div class="card">
     <table class="tbl"><thead><tr><th>Año</th><th>Tema</th><th>Severidad</th><th>Descripción</th><th>Estatus</th><th>Fuente</th><th></th></tr></thead><tbody>
-    ${(d.controversies || []).map((c, i) => row(c, i, 'Empresa')).join('')}${(rv.controversies || []).map((c, i) => row(c, i, 'Consultor')).join('')}
+    ${(d.controversies || []).map((c, i) => row(c, i, 'Empresa')).join('')}${(rv.controversies || []).map((c, i) => row(c, i, 'Aztlan')).join('')}
     ${!r.contros.length ? '<tr><td colspan="7" class="muted">Sin controversias registradas.</td></tr>' : ''}</tbody></table>
     ${canAdd ? `<form class="cform" data-a="addcontro">
       <input name="year" placeholder="Año" value="${new Date().getFullYear()}">
@@ -1554,7 +1554,7 @@ function vContro() {
       <select name="sev">${SEVERITY.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}</select>
       <input name="desc" placeholder="Descripción y medidas tomadas" class="grow">
       <select name="status"><option value="abierta">Abierta</option><option value="resuelta">Resuelta</option></select>
-      <button class="btn">Agregar${isAdmin ? ' (consultor)' : ''}</button></form>` : ''}
+      <button class="btn">Agregar${isAdmin ? ' (Aztlan)' : ''}</button></form>` : ''}
   </div>
   <div class="card"><h3>Escala de severidad</h3><table class="tbl"><tbody>${SEVERITY.map(s => `<tr><td><b>${s.name}</b></td><td>${s.desc}</td><td class="r muted">−${s.pen} pts</td></tr>`).join('')}</tbody></table></div>`;
 }
@@ -1566,7 +1566,7 @@ function vRevision() {
   const vals = rv.validations || {};
   const withEv = Q.filter(q => hasEv(d.answers?.[q.id]));
   const okN = Object.values(vals).filter(v => v.s === 'ok').length, rejN = Object.values(vals).filter(v => v.s === 'rej').length;
-  return head('Revisión del consultor', 'Valida evidencias, deja comentarios y cambia el estatus. El cliente ve tus comentarios en su resumen y junto a cada pregunta.') + `
+  return head('Revisión de Aztlan', 'Valida evidencias, deja comentarios y cambia el estatus. El cliente ve tus comentarios en su resumen y junto a cada pregunta.') + `
   <section class="kpis"><div class="kpi"><label>Respuestas con evidencia</label><b>${withEv.length}</b></div><div class="kpi"><label>Validadas</label><b>${okN}</b></div><div class="kpi"><label>Insuficientes</label><b>${rejN}</b></div><div class="kpi"><label>Combinada</label><b>${fmt(r.combined)}</b>${badge(rating(r.combined), 1)}</div></section>
   <div class="card"><div class="form">
     <label class="fld"><span>Estatus de la evaluación</span><select data-rv="status">${[['', '—'], ['en revisión', 'En revisión'], ['observaciones', 'Con observaciones'], ['validado', 'Validado']].map(([v, l]) => `<option value="${v}" ${(rv.status || '') === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
@@ -1642,7 +1642,7 @@ function vSemaforo() {
   ${groups.map(g => { const L = data.filter(g.f).sort(sortFn); if (!L.length) return ''; return `<div class="card"><div class="ch"><h3 style="color:${g.color}">${g.name}</h3><span class="muted small">${L.length} criterio(s)${g.hint ? ' · ' + g.hint : ''}</span></div><table class="tbl semt"><thead><tr><th style="width:46%">Criterio</th><th>Tipo</th><th>${grp === 'prio' ? 'Pilar · tema' : 'Tema'}</th><th class="c">Política</th><th class="c">Adopción</th><th class="c">Comunicación</th><th>Prioridad</th></tr></thead><tbody>
   ${L.map(x => semRow(x, grp)).join('')}
   </tbody></table></div>`; }).join('')}
-  <p class="muted small">Adopción: verde si el consultor validó la evidencia, amarillo si hay evidencia por validar. Comunicación: verde si la empresa marcó que lo comunica públicamente.</p>`;
+  <p class="muted small">Adopción: verde si Aztlan validó la evidencia, amarillo si hay evidencia por validar. Comunicación: verde si la empresa marcó que lo comunica públicamente.</p>`;
 }
 
 function semPrio(q, dims, r) {
@@ -1664,7 +1664,7 @@ function semRow(x, grp) {
   ${open && g ? `<tr class="guiderow"><td colspan="7"><div class="g-body g-in"><div class="g-need"><label>Qué debes cumplir</label><p>${esc(g.need)}</p></div><div class="g-steps"><label>Cómo hacerlo</label><ol>${g.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol></div><div class="g-ev"><label>Evidencia que lo demuestra</label><p>${esc(g.ev)}</p><p class="muted small">${esc(q.ref)}</p><button class="btn ghost sm" data-a="gotheme" data-t="${q.t}">Responder / subir evidencia →</button></div></div></td></tr>` : ''}`;
 }
 
-// ===================== COMUNICACIÓN CONSULTOR ↔ CLIENTE =====================
+// ===================== COMUNICACIÓN AZTLAN ↔ CLIENTE =====================
 function nowIso() { return new Date().toISOString(); }
 function fmtWhen(iso) { if (!iso) return ''; const d = new Date(iso); return d.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' }) + ' · ' + d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }); }
 function myRole() { return S.role === 'admin' ? 'admin' : 'client'; }
@@ -1704,7 +1704,7 @@ function pendBanner(d, rv) {
   if (!p.total) return '';
   const parts = S.role === 'admin'
     ? [p.sub && 'evaluación enviada a revisión', p.ev.length && `${p.ev.length} evidencia(s) por validar`, p.msgs.length && `${p.msgs.length} conversación(es) con mensajes nuevos`, p.reqs.length && `${p.reqs.length} solicitud(es) entregada(s) por confirmar`]
-    : [p.reqs.length && `${p.reqs.length} solicitud(es) de información`, p.rej.length && `${p.rej.length} evidencia(s) por corregir`, p.msgs.length && `${p.msgs.length} mensaje(s) nuevo(s) del consultor`, p.notes && 'comentarios nuevos del consultor'];
+    : [p.reqs.length && `${p.reqs.length} solicitud(es) de información`, p.rej.length && `${p.rej.length} evidencia(s) por corregir`, p.msgs.length && `${p.msgs.length} mensaje(s) nuevo(s) de Aztlan`, p.notes && 'comentarios nuevos de Aztlan'];
   return `<div class="pbanner"><span class="nbadge inl">${p.total}</span><span>Tienes pendiente: ${parts.filter(Boolean).join(' · ')}</span><button class="btn sm" data-a="go" data-v="pendientes">Ver pendientes →</button></div>`;
 }
 function markSeen(qid) {
@@ -1723,9 +1723,9 @@ function threadBox(qid, d, rv, forceOpen) {
   const ms = thread(d, rv, qid); const role = myRole(); const un = unreadIn(d, rv, qid, role);
   const open = forceOpen || S.thOpen?.[qid];
   const company = d.profile?.name || 'Empresa';
-  const ph = role === 'admin' ? 'Escribe una pregunta o indicación para el cliente…' : 'Escribe tu duda o comentario para el consultor…';
-  const head = forceOpen ? '' : `<button class="th-h" data-a="thtoggle" data-q="${qid}">${icon('chat')}<span>${role === 'admin' ? 'Conversación con el cliente' : 'Preguntar al consultor'}</span>${ms.length ? `<em class="muted small">${ms.length} mensaje(s)</em>` : ''}${un ? `<em class="nbadge inl">${un} nuevo(s)</em>` : ''}<span class="caret">▸</span></button>`;
-  return `<div class="thread ${open ? 'open' : ''}">${head}${open ? `<div class="th-b">${ms.length ? ms.map(m => `<div class="msg ${m.by} ${m.by === role ? 'mine' : ''}"><div class="mh"><b>${m.by === 'admin' ? 'Consultor Aztlan' : esc(company)}</b><span>${fmtWhen(m.at)}</span></div><p>${esc(m.t)}</p></div>`).join('') : `<p class="muted small">Sin mensajes todavía.</p>`}
+  const ph = role === 'admin' ? 'Escribe una pregunta o indicación para el cliente…' : 'Escribe tu duda o comentario para Aztlan…';
+  const head = forceOpen ? '' : `<button class="th-h" data-a="thtoggle" data-q="${qid}">${icon('chat')}<span>${role === 'admin' ? 'Conversación con el cliente' : 'Preguntar a Aztlan'}</span>${ms.length ? `<em class="muted small">${ms.length} mensaje(s)</em>` : ''}${un ? `<em class="nbadge inl">${un} nuevo(s)</em>` : ''}<span class="caret">▸</span></button>`;
+  return `<div class="thread ${open ? 'open' : ''}">${head}${open ? `<div class="th-b">${ms.length ? ms.map(m => `<div class="msg ${m.by} ${m.by === role ? 'mine' : ''}"><div class="mh"><b>${m.by === 'admin' ? 'Aztlan' : esc(company)}</b><span>${fmtWhen(m.at)}</span></div><p>${esc(m.t)}</p></div>`).join('') : `<p class="muted small">Sin mensajes todavía.</p>`}
     <div class="th-in"><textarea rows="2" data-msg="${qid}" placeholder="${ph}">${esc(S.drafts?.[qid] || '')}</textarea><button class="btn sm" data-a="send" data-q="${qid}">Enviar</button></div></div>` : ''}</div>`;
 }
 const LOG_TYPES = ['Reunión', 'Llamada', 'Acuerdo', 'Solicitud de información', 'Entrega'];
@@ -1739,22 +1739,22 @@ function vPendientes() {
   const d = curData(), rv = curReview();
   const isAdmin = S.role === 'admin';
   const company = esc(d.profile?.name || 'la empresa');
-  const msgRow = k => { const ms = thread(d, rv, k); const last = ms[ms.length - 1]; const q = QM[k]; return `<li class="click" data-a="gothread" data-q="${k}"><span class="nbadge inl">${unreadIn(d, rv, k, myRole())}</span><div><b>${esc(q ? q.q : '')}</b><p class="muted small">${last ? (last.by === 'admin' ? 'Consultor' : company) + ': “' + esc(last.t.slice(0, 120)) + '”' : ''}</p></div></li>`; };
+  const msgRow = k => { const ms = thread(d, rv, k); const last = ms[ms.length - 1]; const q = QM[k]; return `<li class="click" data-a="gothread" data-q="${k}"><span class="nbadge inl">${unreadIn(d, rv, k, myRole())}</span><div><b>${esc(q ? q.q : '')}</b><p class="muted small">${last ? (last.by === 'admin' ? 'Aztlan' : company) + ': “' + esc(last.t.slice(0, 120)) + '”' : ''}</p></div></li>`; };
   const logList = (entries, ro) => entries.length ? `<ul class="loglist">${entries.map(e => `<li class="${e.done ? 'done' : ''}"><span class="ltype">${esc(e.type)}</span><div class="ltxt"><b>${esc(e.text)}</b><span class="muted small">${esc(e.date)}${e.due ? ' · compromiso: ' + esc(e.due) : ''}${isAdmin ? (e.share ? ' · visible para el cliente' : ' · solo interno') : ''}${e.type === 'Solicitud de información' && d.reqDone?.[e.id] ? ' · <span class="okc">entregado por el cliente ' + fmtWhen(d.reqDone[e.id]) + '</span>' : ''}</span></div>${ro ? '' : `<button class="opt sm" data-a="logdone" data-id="${e.id}">${e.done ? 'Reabrir' : 'Cerrar'}</button><button class="link" data-a="logdel" data-id="${e.id}">Eliminar</button>`}</li>`).join('')}</ul>` : '<p class="muted small">Sin registros.</p>';
   if (!isAdmin) {
     const p = pendClient(d, rv);
     const shared = (rv.log || []).filter(e => e.share);
-    return head('Mensajes y pendientes', 'Lo que tu consultor te pidió o te comentó, y tu conversación con Aztlan.') + `
+    return head('Mensajes y pendientes', 'Lo que Aztlan te pidió o te comentó, y tu conversación con Aztlan.') + `
     <div class="grid2 g-even">
       <div class="card"><div class="ch"><h3>Solicitudes de información</h3><span class="nbadge inl ${p.reqs.length ? '' : 'zero'}">${p.reqs.length}</span></div>
-        ${shared.filter(e => e.type === 'Solicitud de información').length ? `<ul class="loglist">${shared.filter(e => e.type === 'Solicitud de información').map(e => { const done = d.reqDone?.[e.id]; return `<li class="${done ? 'done' : ''}"><span class="ltype">Solicitud</span><div class="ltxt"><b>${esc(e.text)}</b><span class="muted small">${esc(e.date)}${e.due ? ' · fecha compromiso: ' + esc(e.due) : ''}</span></div>${done ? `<button class="opt sm" data-a="requndo" data-id="${e.id}">Entregado ✓</button>` : `<button class="btn sm" data-a="reqdone" data-id="${e.id}">Marcar como entregado</button>`}</li>`; }).join('')}</ul>` : '<p class="muted small">Tu consultor no te ha pedido información.</p>'}</div>
+        ${shared.filter(e => e.type === 'Solicitud de información').length ? `<ul class="loglist">${shared.filter(e => e.type === 'Solicitud de información').map(e => { const done = d.reqDone?.[e.id]; return `<li class="${done ? 'done' : ''}"><span class="ltype">Solicitud</span><div class="ltxt"><b>${esc(e.text)}</b><span class="muted small">${esc(e.date)}${e.due ? ' · fecha compromiso: ' + esc(e.due) : ''}</span></div>${done ? `<button class="opt sm" data-a="requndo" data-id="${e.id}">Entregado ✓</button>` : `<button class="btn sm" data-a="reqdone" data-id="${e.id}">Marcar como entregado</button>`}</li>`; }).join('')}</ul>` : '<p class="muted small">Aztlan no te ha pedido información.</p>'}</div>
       <div class="card"><div class="ch"><h3>Evidencias por corregir</h3><span class="nbadge inl ${p.rej.length ? '' : 'zero'}">${p.rej.length}</span></div>
-        ${p.rej.length ? `<ul class="plist">${p.rej.map(q => `<li class="click" data-a="goq" data-q="${q}"><span class="sem s-bad"></span><div><b>${esc(QM[q].q)}</b><p class="muted small">${esc(rv.validations[q].c || 'El consultor marcó la evidencia como insuficiente.')}</p></div></li>`).join('')}</ul>` : '<p class="muted small">Ninguna. Cuando corrijas una evidencia, desaparece de aquí.</p>'}</div>
+        ${p.rej.length ? `<ul class="plist">${p.rej.map(q => `<li class="click" data-a="goq" data-q="${q}"><span class="sem s-bad"></span><div><b>${esc(QM[q].q)}</b><p class="muted small">${esc(rv.validations[q].c || 'Aztlan marcó la evidencia como insuficiente.')}</p></div></li>`).join('')}</ul>` : '<p class="muted small">Ninguna. Cuando corrijas una evidencia, desaparece de aquí.</p>'}</div>
     </div>
-    ${rv.notes ? `<div class="card ${p.notes ? 'glow' : ''}"><div class="ch"><h3>Comentarios generales del consultor</h3>${p.notes ? `<button class="opt sm" data-a="notesseen">Marcar como leído</button>` : ''}</div><p>${esc(rv.notes).replace(/\n/g, '<br>')}</p></div>` : ''}
+    ${rv.notes ? `<div class="card ${p.notes ? 'glow' : ''}"><div class="ch"><h3>Comentarios generales de Aztlan</h3>${p.notes ? `<button class="opt sm" data-a="notesseen">Marcar como leído</button>` : ''}</div><p>${esc(rv.notes).replace(/\n/g, '<br>')}</p></div>` : ''}
     <div class="card"><div class="ch"><h3>Mensajes nuevos en preguntas</h3><span class="nbadge inl ${p.msgs.filter(k => k !== '_general').length ? '' : 'zero'}">${p.msgs.filter(k => k !== '_general').length}</span></div>
-      ${p.msgs.filter(k => k !== '_general').length ? `<ul class="plist">${p.msgs.filter(k => k !== '_general').map(msgRow).join('')}</ul>` : '<p class="muted small">Sin mensajes nuevos. Puedes preguntar al consultor desde cualquier pregunta del due diligence.</p>'}</div>
-    <div class="card"><h3>Conversación general con tu consultor</h3>${threadBox('_general', d, rv, true)}</div>
+      ${p.msgs.filter(k => k !== '_general').length ? `<ul class="plist">${p.msgs.filter(k => k !== '_general').map(msgRow).join('')}</ul>` : '<p class="muted small">Sin mensajes nuevos. Puedes preguntar a Aztlan desde cualquier pregunta del due diligence.</p>'}</div>
+    <div class="card"><h3>Conversación general con Aztlan</h3>${threadBox('_general', d, rv, true)}</div>
     ${shared.filter(e => e.type !== 'Solicitud de información').length ? `<div class="card"><h3>Reuniones y acuerdos</h3>${logList(shared.filter(e => e.type !== 'Solicitud de información'), true)}</div>` : ''}`;
   }
   const p = pendAdmin(d, rv); const ld = S.logDraft || {};
@@ -1788,8 +1788,8 @@ function vMetodo() {
   <div class="card prose">
     <h3>1. Estructura</h3><p>La calificación se organiza en <b>3 pilares</b> (Ambiental, Social y Gobernanza) y <b>15 temas</b>, con ${Q.length} criterios conectados a la regulación mexicana y a los estándares y calificadoras que integra la metodología.</p>
     <h3>2. Puntaje por pregunta (0 a 1)</h3><table class="tbl"><tbody>
-    <tr><td>Sí, con evidencia</td><td class="r">1.00</td></tr><tr><td>Sí, sin evidencia</td><td class="r">0.75</td></tr><tr><td>Parcial / en proceso</td><td class="r">0.40 (0.50 si el consultor lo valida)</td></tr><tr><td>No / sin respuesta</td><td class="r">0</td></tr><tr><td>No aplica</td><td class="r">se excluye</td></tr>
-    <tr><td>Evidencia marcada como insuficiente por el consultor</td><td class="r">máx. 0.25</td></tr>
+    <tr><td>Sí, con evidencia</td><td class="r">1.00</td></tr><tr><td>Sí, sin evidencia</td><td class="r">0.75</td></tr><tr><td>Parcial / en proceso</td><td class="r">0.40 (0.50 si Aztlan lo valida)</td></tr><tr><td>No / sin respuesta</td><td class="r">0</td></tr><tr><td>No aplica</td><td class="r">se excluye</td></tr>
+    <tr><td>Evidencia marcada como insuficiente por Aztlan</td><td class="r">máx. 0.25</td></tr>
     <tr><td>Indicadores numéricos (IBSO)</td><td class="r">1.00 si se reporta; con meta de desempeño: 0.5 por reportar + 0.5 según desempeño</td></tr>
     <tr><td>Escala de madurez (0–4)</td><td class="r">nivel ÷ 4</td></tr></tbody></table>
     <h3>3. Puntaje por tema (0 a 5)</h3><p>Promedio ponderado de sus preguntas (las preguntas clave pesan el doble) multiplicado por 5.</p>
@@ -1860,7 +1860,7 @@ document.addEventListener('click', e => {
   }
   else if (a === 'snapshot') {
     const rv = (S.reviews[S.cid] ||= {}); const r = compute(d, rv);
-    rv.snapshots = [...(rv.snapshots || []), snap(r, 'Validada por consultor')]; rv.status = 'validado';
+    rv.snapshots = [...(rv.snapshots || []), snap(r, 'Validada por Aztlan')]; rv.status = 'validado';
     markReviewDirty(); render();
   }
   else if (a === 'delcontro') {
@@ -1943,7 +1943,7 @@ async function uploadFiles(qid, files) {
       cur.answers[qid] = { ...ans, files: [...(ans.files || []), rec], evAt: nowIso() };
       markDirty(); setUp(qid, `“${f.name}” adjuntado ✓`);
     } catch (e) {
-      const m = { too_large: 'El archivo supera 20 MB.', unsupported_type: 'Ese tipo de archivo no se admite. Usa PDF, imagen, CSV o TXT (texto en UTF-8).', quota_or_state: 'Se llenó el espacio de archivos de la plataforma. Avisa a tu consultor.', rate_limited: 'Demasiadas cargas seguidas; espera unos segundos e inténtalo de nuevo.', upstream_auth: 'Tu sesión expiró: recarga la página.', invalid_request: 'No se pudo leer el archivo (si es texto, guárdalo en UTF-8).', not_granted: 'Tu acceso no permite subir archivos; pega el enlace de SharePoint.', capability_disabled: 'La carga de archivos no está disponible aquí; pega el enlace de SharePoint.' }[e?.code] || 'No se pudo subir el archivo. Inténtalo de nuevo.';
+      const m = { too_large: 'El archivo supera 20 MB.', unsupported_type: 'Ese tipo de archivo no se admite. Usa PDF, imagen, CSV o TXT (texto en UTF-8).', quota_or_state: 'Se llenó el espacio de archivos de la plataforma. Avisa a Aztlan.', rate_limited: 'Demasiadas cargas seguidas; espera unos segundos e inténtalo de nuevo.', upstream_auth: 'Tu sesión expiró: recarga la página.', invalid_request: 'No se pudo leer el archivo (si es texto, guárdalo en UTF-8).', not_granted: 'Tu acceso no permite subir archivos; pega el enlace de SharePoint.', capability_disabled: 'La carga de archivos no está disponible aquí; pega el enlace de SharePoint.' }[e?.code] || 'No se pudo subir el archivo. Inténtalo de nuevo.';
       setUp(qid, m, true);
     }
   }
@@ -1982,8 +1982,8 @@ function downloadReport() {
   <tr><th>Controversias</th><th></th><th class="r">${fmt(r.contro)}</th><th></th></tr><tr><th>ESG</th><th></th><th class="r">${fmt(r.esg)}</th><th></th></tr><tr><th>ESG combinada</th><th></th><th class="r">${fmt(r.combined)}</th><th>${rt.name}</th></tr></table>
   <h2>Proyección</h2><p>${proj.map((v, i) => (i ? 'Fase ' + i : 'Hoy') + ': <b>' + fmt(v) + '</b> (' + rating(v).name + ')').join(' → ')}</p>
   <h2>Plan de trabajo</h2>${[1, 2, 3].map(ph => `<h3>${PHASES[ph].name} (${PHASES[ph].when})</h3><table><tr><th>Acción</th><th>Tema</th><th>Prioridad</th><th class="r">Impacto</th></tr>${items.filter(i => i.phase === ph).map(i => `<tr><td>${esc(i.action)}</td><td>${THEME[i.theme].name}</td><td>${i.priority}</td><td class="r">+${fmt(i.uplift, 2)}</td></tr>`).join('')}</table>`).join('')}
-  ${rv.notes ? `<h2>Comentarios del consultor</h2><p>${esc(rv.notes).replace(/\n/g, '<br>')}</p>` : ''}
-  <p class="muted" style="margin-top:40px">Metodología propietaria Aztlan · Sistema Integral de Cumplimiento Sustentable: escala 0–5, materialidad por sector, ajuste por controversias. Este reporte es una autoevaluación con revisión de consultor y no constituye una opinión legal.</p></body></html>`;
+  ${rv.notes ? `<h2>Comentarios de Aztlan</h2><p>${esc(rv.notes).replace(/\n/g, '<br>')}</p>` : ''}
+  <p class="muted" style="margin-top:40px">Metodología propietaria Aztlan · Sistema Integral de Cumplimiento Sustentable: escala 0–5, materialidad por sector, ajuste por controversias. Este reporte es una autoevaluación con revisión de Aztlan y no constituye una opinión legal.</p></body></html>`;
   save(`Reporte_ESG_${(d.profile?.name || 'empresa').replace(/[^\w]+/g, '_')}.html`, html);
 }
 
@@ -1992,7 +1992,7 @@ function downloadReport() {
 // Estructura en la biblioteca de documentos del sitio:
 //   Clientes/<empresa>/empresa.json            ← lo escribe el cliente (permiso de edición en su carpeta)
 //   Clientes/<empresa>/evidencias/<criterio>/… ← archivos de evidencia (cualquier formato)
-//   Revisiones/<empresa>/revision.json         ← lo escribe el consultor (el cliente solo lectura)
+//   Revisiones/<empresa>/revision.json         ← lo escribe Aztlan (el cliente solo lectura)
 //   Publico/benchmarks.json                    ← promedios anónimos por sector (clientes solo lectura)
 const CFG = window.AZTLAN_CONFIG || {};
 const SP = (() => {
@@ -2161,10 +2161,10 @@ const SP = (() => {
   }
   async function startClient() {
     let id = null; try { id = localStorage.getItem('aztlan-empresa'); } catch (e) {}
-    if (!id) { errorScreen('Abre el enlace de tu invitación', 'Para entrar a tu evaluación usa el enlace que Aztlan te envió por correo (termina en <code>?e=…</code>). Si no lo tienes, pídeselo a tu consultor.'); throw Object.assign(new Error('sin-empresa'), { handled: true }); }
+    if (!id) { errorScreen('Abre el enlace de tu invitación', 'Para entrar a tu evaluación usa el enlace que Aztlan te envió por correo (termina en <code>?e=…</code>). Si no lo tienes, pídeselo a Aztlan.'); throw Object.assign(new Error('sin-empresa'), { handled: true }); }
     S.role = 'client'; S.me = id; S.cid = id; S.view = 'inicio';
     const c = await getJSON(`Clientes/${id}/empresa.json`);
-    if (!c) { errorScreen('No tienes acceso a esta evaluación', `Tu cuenta (${esc(account?.username || '')}) no tiene permiso sobre la empresa <b>${esc(id)}</b>. Verifica que iniciaste sesión con el correo al que llegó la invitación, o pide a tu consultor que te vuelva a invitar.`); throw Object.assign(new Error('sin-acceso'), { handled: true }); }
+    if (!c) { errorScreen('No tienes acceso a esta evaluación', `Tu cuenta (${esc(account?.username || '')}) no tiene permiso sobre la empresa <b>${esc(id)}</b>. Verifica que iniciaste sesión con el correo al que llegó la invitación, o pide a Aztlan que te vuelva a invitar.`); throw Object.assign(new Error('sin-acceso'), { handled: true }); }
     S.data = c; await loadClientExtras(); render();
   }
   async function loadClientExtras() {
