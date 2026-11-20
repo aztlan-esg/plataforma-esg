@@ -303,6 +303,23 @@ input[type=date]{color-scheme:dark}
 .prose p{max-width:820px;color:var(--ink2)}.prose h3{margin-top:24px}
 @media (max-width:1100px){.tri4{grid-template-columns:1fr 1fr}.scoretop,.lseg,.grid2,.grid2.g-wide,.grid2.g-even{grid-template-columns:1fr}}
 @media (max-width:900px){#app{flex-direction:column}.side{width:100%;height:auto;position:static;flex:none}nav{flex-direction:row;flex-wrap:wrap}main{padding:20px}.hero,.dd,.form,.matgrid{grid-template-columns:1fr}.hero>div+div{border-left:0;border-top:1px solid var(--line)}.ddnav{position:static;max-height:none}.qx{grid-template-columns:1fr}.opts,.qx,.numrow,.val,.valc,.files,.pubchk,.guide,.thread{margin-left:0}.msg{max-width:92%}.g-body{grid-template-columns:1fr}.prac,.cal,.tri4{grid-template-columns:1fr 1fr}.tbl{display:block;overflow-x:auto}.donutrow{flex-direction:column}}
+
+/* Peers */
+.pos{color:#5BAE7E!important}.neg{color:#E5484D!important}.nowrap{white-space:nowrap}
+.prank{width:100%;height:auto;display:block;overflow:visible}
+.prk{font:500 12.5px Inter,system-ui,sans-serif;fill:var(--ink2)}.prk.me{fill:#F5C400;font-weight:700}
+.prv{font:600 12px var(--mono);fill:var(--ink2)}.prv.me{fill:#F5C400}
+.chk{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink2);cursor:pointer}.chk input{accent-color:#F5C400;width:16px;height:16px}
+.pform{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 14px}
+.pform .fld em{font-style:normal}
+.pthemes{margin-top:14px;border:1px solid var(--line2);border-radius:12px;padding:10px 14px;background:rgba(14,11,43,.35)}
+.pthemes summary{cursor:pointer;color:var(--turq);font-weight:600;font-size:13px}
+.ptgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 16px;margin-top:12px}
+.ptgrid label{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink2)}.ptgrid label span{flex:1}
+.ptgrid input{width:62px;border:1px solid var(--line2);border-radius:8px;padding:6px 8px;background:var(--bg2);color:var(--ink);text-align:center}
+.grid2.g-top{align-items:start}
+.prow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:16px}
+@media(max-width:1100px){.pform{grid-template-columns:repeat(2,minmax(0,1fr))}.ptgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 </head>
 <body>
@@ -1225,7 +1242,7 @@ function render() {
   const nav = [];
   if (S.role === 'admin') nav.push(['cartera', 'Cartera de clientes', 'grid']);
   if (inCompany) {
-    nav.push(['pendientes', S.role === 'admin' ? 'Mensajes y pendientes' : 'Mensajes y pendientes', 'chat'], ['inicio', 'Resumen', 'home'], ['perfil', 'Perfil de empresa', 'id'], ['dd', 'Due diligence', 'list'], ['score', 'Calificación ESG', 'chart'], ['semaforo', 'Matriz Semáforo', 'dots'], ['plan', 'Plan de trabajo', 'flag'], ['normativo', 'Cumplimiento México', 'scale'], ['contro', 'Controversias', 'alert']);
+    nav.push(['pendientes', S.role === 'admin' ? 'Mensajes y pendientes' : 'Mensajes y pendientes', 'chat'], ['inicio', 'Resumen', 'home'], ['perfil', 'Perfil de empresa', 'id'], ['dd', 'Due diligence', 'list'], ['score', 'Calificación ESG', 'chart'], ['peers', 'Comparativo con peers', 'users'], ['semaforo', 'Matriz Semáforo', 'dots'], ['plan', 'Plan de trabajo', 'flag'], ['normativo', 'Cumplimiento México', 'scale'], ['contro', 'Controversias', 'alert']);
     if (S.role === 'admin') nav.push(['revision', 'Revisión de Aztlan', 'check']);
   }
   nav.push(['metodo', 'Metodología', 'book']);
@@ -1255,6 +1272,7 @@ function viewHTML() {
     case 'perfil': return vPerfil();
     case 'dd': return vDD();
     case 'score': return vScore();
+    case 'peers': return vPeers();
     case 'semaforo': return vSemaforo();
     case 'pendientes': return vPendientes();
     case 'plan': return vPlan();
@@ -1461,8 +1479,9 @@ function vScore() {
     </div>
     <div class="lcol">
       <div class="card">
-        <h3>Comparativo</h3>
+        <div class="ch"><h3>Comparativo</h3><button class="link" data-a="go" data-v="peers">Ver comparativo con peers →</button></div>
         ${b && b.n >= 3 ? `<div class="bench"><div><label>Tu empresa</label><b>${fmt(r.combined)}</b></div><div><label>Promedio ${esc(sector)}</label><b>${fmt(b.avg)}</b></div><div><label>Mejor del sector</label><b>${fmt(b.max)}</b></div></div><p class="muted small">${b.n} empresas evaluadas en la plataforma (anónimo).</p>` : `<p class="muted">El comparativo de tu sector aparece cuando haya al menos 3 empresas evaluadas en la plataforma, para mantener el anonimato.</p>`}
+        ${(() => { const ps = peersVisible(rv) ? peerSummary(d, rv) : null; return ps ? `<div class="bench"><div><label>Posición vs peers</label><b>${ps.pos} de ${ps.n}</b></div><div><label>Promedio peers</label><b>${fmt(ps.avg)}</b></div><div><label>Líder</label><b>${fmt(ps.best.c.overall)}</b></div></div>` : ''; })()}
       </div>
       <div class="card">
         <h3>Historial</h3>
@@ -1798,14 +1817,191 @@ function vMetodo() {
     <h3>6. Niveles</h3><table class="tbl"><tbody>${RATINGS.map((r, i) => `<tr><td>${badge(r, 1)}</td><td>${r.min.toFixed(1)} – ${(RATINGS[i + 1]?.min ?? 5).toFixed(1)}</td><td>${r.desc}</td></tr>`).join('')}</tbody></table>
     <h3>Sistema Integral de Cumplimiento Sustentable (Aztlan)</h3><p>Cada criterio ESG queda cubierto por una <b>política</b>, un <b>procedimiento</b> y un <b>órgano de gobierno</b> responsable, y se evalúa en la Matriz Semáforo en tres dimensiones: <b>existencia de la política</b>, <b>adopción con evidencia</b> y <b>comunicación pública</b>. El trabajo sigue cinco pasos: revisión y diagnóstico, comparación global, identificación de brechas, colaboración y cierre, y monitoreo continuo.</p>
     <h3>7. Plan de trabajo (hoja de ruta de 18 meses)</h3><p>Cada brecha genera una acción. Su <b>impacto</b> es cuánto subiría la calificación ESG si se cierra por completo (materialidad del tema × peso de la pregunta × brecha). Las obligaciones legales y las acciones de bajo esfuerzo van a la Fase 1 (meses 0–3: diagnóstico, materialidad y cumplimiento); las de esfuerzo medio a la Fase 2 (meses 3–9: diseño e implementación); reporte, aseguramiento, certificaciones y calificadoras a la Fase 3 (meses 9–18). El resultado es la puntuación <b>actual → teórica tras la Fase 1 → objetivo</b>.</p>
+    <h3>8. Comparativo con peers</h3><p>Aztlan selecciona de 3 a 6 empresas pares del mismo sector y tamaño (de preferencia emisoras de la BMV con informe de sostenibilidad público). Su calificación se lleva a la escala 0–5 de Aztlan: la <b>Evaluación Aztlan</b> califica al peer con los mismos 15 temas y la materialidad del sector del cliente, por lo que es la comparación más precisa. Las calificaciones externas se convierten como referencia:</p>
+    <table class="tbl"><tbody><tr><td>S&amp;P Global CSA, LSEG (numérico) u otra fuente 0–100</td><td class="r">valor ÷ 20</td></tr><tr><td>Bloomberg ESG (0–10)</td><td class="r">valor ÷ 2</td></tr><tr><td>MSCI ESG Rating (CCC…AAA)</td><td class="r">punto medio de cada letra: CCC 0.36 · B 1.07 · BB 1.79 · BBB 2.50 · A 3.21 · AA 3.93 · AAA 4.64</td></tr><tr><td>LSEG en letra (D- … A+)</td><td class="r">punto medio de cada una de las 12 letras</td></tr><tr><td>Sustainalytics ESG Risk (menor es mejor)</td><td class="r">5 × (1 − riesgo ÷ 50), con riesgo máximo de 50</td></tr></tbody></table>
+    <p>La empresa se compara con su <b>calificación combinada</b>. La brecha por tema solo se muestra para peers con Evaluación Aztlan.</p>
   </div>
   <div class="card"><h3>Glosario ESG</h3><div class="gloss">${GLOSSARY.map(([t, s]) => `<div><b>${t}</b><p>${s}</p></div>`).join('')}</div></div>`;
 }
 
 // ===================== ICONOS =====================
 function icon(n) {
-  const p = { grid: 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z', home: 'M3 11l9-8 9 8v10H3z', id: 'M4 5h16v14H4zM8 10a2 2 0 104 0 2 2 0 10-4 0M7 16c1-2 5-2 6 0M15 9h3M15 13h3', list: 'M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1', chart: 'M4 20V10M10 20V4M16 20v-7M22 20H2', flag: 'M5 21V4h11l-2 4 2 4H5', scale: 'M12 3v18M5 7h14M5 7l-3 7a3 3 0 006 0zM19 7l-3 7a3 3 0 006 0z', alert: 'M12 3l10 18H2zM12 10v5M12 18v.5', check: 'M4 12l5 5L20 6', chat: 'M4 5h16v11H9l-5 4z', dots: 'M5 6h.01M12 6h.01M19 6h.01M5 12h.01M12 12h.01M19 12h.01M5 18h.01M12 18h.01M19 18h.01', book: 'M4 4h7a3 3 0 013 3v13a2 2 0 00-2-2H4zM20 4h-5a3 3 0 00-3 3' }[n];
+  const p = { users: 'M9 11a3.5 3.5 0 100-7 3.5 3.5 0 000 7M2.5 20c.5-3.5 3.2-5.5 6.5-5.5s6 2 6.5 5.5M16.5 4.5a3.2 3.2 0 010 6.2M18.5 14.8c1.8.7 2.8 2.5 3 5.2', grid: 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z', home: 'M3 11l9-8 9 8v10H3z', id: 'M4 5h16v14H4zM8 10a2 2 0 104 0 2 2 0 10-4 0M7 16c1-2 5-2 6 0M15 9h3M15 13h3', list: 'M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1', chart: 'M4 20V10M10 20V4M16 20v-7M22 20H2', flag: 'M5 21V4h11l-2 4 2 4H5', scale: 'M12 3v18M5 7h14M5 7l-3 7a3 3 0 006 0zM19 7l-3 7a3 3 0 006 0z', alert: 'M12 3l10 18H2zM12 10v5M12 18v.5', check: 'M4 12l5 5L20 6', chat: 'M4 5h16v11H9l-5 4z', dots: 'M5 6h.01M12 6h.01M19 6h.01M5 12h.01M12 12h.01M19 12h.01M5 18h.01M12 18h.01M19 18h.01', book: 'M4 4h7a3 3 0 013 3v13a2 2 0 00-2-2H4zM20 4h-5a3 3 0 00-3 3' }[n];
   return `<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${p}"/></svg>`;
+}
+
+// ===================== PEERS (comparativo con empresas pares) =====================
+// Aztlan registra los peers de cada cliente en su revisión (rv.peers). Cada calificación externa
+// se convierte a la escala 0–5 de Aztlan; la comparación más precisa es la "Evaluación Aztlan",
+// que usa los 15 temas y la materialidad del sector del cliente.
+const MSCI_L = ['CCC', 'B', 'BB', 'BBB', 'A', 'AA', 'AAA'];
+const LSEG_L = ['D-', 'D', 'D+', 'C-', 'C', 'C+', 'B-', 'B', 'B+', 'A-', 'A', 'A+'];
+const PEER_SRC = {
+  aztlan: { name: 'Evaluación Aztlan', scale: '0 a 5', ph: 'Ej. 2.8', max: 5, pillars: true, themes: true, conv: v => v },
+  sp: { name: 'S&P Global CSA', scale: '0 a 100', ph: 'Ej. 45', max: 100, pillars: true, conv: v => v / 20 },
+  lseg: { name: 'LSEG ESG Score', scale: '0 a 100 o letra A+ a D-', ph: 'Ej. 62 o B+', max: 100, pillars: true, letters: LSEG_L, conv: v => v / 20 },
+  msci: { name: 'MSCI ESG Rating', scale: 'CCC a AAA', ph: 'Ej. BBB', letters: MSCI_L, only: true },
+  sust: { name: 'Sustainalytics ESG Risk', scale: 'riesgo 0 a 50+ (menor es mejor)', ph: 'Ej. 24.5', max: 100, risk: true, conv: v => 5 * (1 - Math.min(v, 50) / 50) },
+  bbg: { name: 'Bloomberg ESG', scale: '0 a 10', ph: 'Ej. 4.2', max: 10, pillars: true, conv: v => v / 2 },
+  otra: { name: 'Otra fuente (0 a 100)', scale: '0 a 100', ph: 'Ej. 55', max: 100, pillars: true, conv: v => v / 20 },
+};
+function peerNum(src, raw) {
+  const s = PEER_SRC[src]; if (!s || raw == null || String(raw).trim() === '') return null;
+  const t = String(raw).trim().toUpperCase().replace(',', '.');
+  if (s.letters) { const i = s.letters.indexOf(t); if (i >= 0) return 5 * (i + 0.5) / s.letters.length; if (s.only) return null; }
+  const n = Number(t); if (!isFinite(n) || n < 0 || (s.max && n > s.max)) return null;
+  return clamp(s.conv(n) / 5) * 5;
+}
+function peerCalc(p, mat) {
+  const s = PEER_SRC[p.src] || PEER_SRC.otra;
+  const th = s.themes && p.themes ? Object.fromEntries(Object.entries(p.themes).filter(([, v]) => v !== '' && v != null && isFinite(Number(v))).map(([k, v]) => [k, clamp(Number(v) / 5) * 5])) : {};
+  const hasTh = Object.keys(th).length > 0;
+  const pil = {};
+  if (hasTh) {
+    let tw = 0, ts = 0;
+    for (const P of PILLARS) {
+      let w = 0, x = 0;
+      THEMES.filter(t => t.p === P.id && th[t.id] != null).forEach(t => { w += mat[t.id]; x += th[t.id] * mat[t.id]; });
+      pil[P.id] = w ? x / w : null; tw += w; ts += x;
+    }
+    return { overall: tw ? ts / tw : null, E: pil.E, S: pil.S, G: pil.G, themes: th, fromThemes: true };
+  }
+  const one = k => s.pillars ? peerNum(p.src, p[k]) : null;
+  return { overall: peerNum(p.src, p.score), E: one('E'), S: one('S'), G: one('G'), themes: null, fromThemes: false };
+}
+function peerRows(d, rv) {
+  const mat = materiality(d.profile);
+  return (rv.peers || []).map(p => ({ p, c: peerCalc(p, mat) })).filter(x => x.c.overall != null);
+}
+function avgOf(a) { const v = a.filter(x => x != null); return v.length ? v.reduce((x, y) => x + y, 0) / v.length : null; }
+function peerSummary(d, rv) {
+  const rows = peerRows(d, rv); if (!rows.length) return null;
+  const me = compute(d, rv).combined;
+  const all = [...rows.map(x => x.c.overall), me].sort((a, b) => b - a);
+  const best = rows.reduce((a, b) => (b.c.overall > a.c.overall ? b : a));
+  return { rows, me, pos: all.indexOf(me) + 1, n: all.length, avg: avgOf(rows.map(x => x.c.overall)), best };
+}
+function peersVisible(rv) { return S.role === 'admin' || rv.peersShare !== false; }
+
+// Ranking horizontal: tu empresa en dorado, peers en gris azulado, línea del promedio
+function peerRankChart(items, avg) {
+  const W = 720, rowH = 30, L = 210, Rr = 70, T = 24, H = T + items.length * rowH + 30, iw = W - L - Rr;
+  const x = v => L + iw * clamp(v / 5);
+  const bands = RATINGS.map((r, i) => { const lo = r.min, hi = RATINGS[i + 1]?.min ?? 5; return `<rect x="${x(lo)}" y="${T - 6}" width="${x(hi) - x(lo)}" height="${items.length * rowH + 6}" fill="${r.color}" opacity=".06"/><text x="${(x(lo) + x(hi)) / 2}" y="${T - 10}" text-anchor="middle" class="ax">${r.name}</text>`; }).join('');
+  const grid = [0, 1, 2, 3, 4, 5].map(v => `<line x1="${x(v)}" x2="${x(v)}" y1="${T - 6}" y2="${T + items.length * rowH}" stroke="${CH.grid}"/><text x="${x(v)}" y="${T + items.length * rowH + 16}" text-anchor="middle" class="ax">${v}</text>`).join('');
+  const rows = items.map((it, i) => {
+    const y = T + i * rowH, me = it.me, col = me ? '#F5C400' : it.ref ? '#5BAE7E' : '#9AAACB';
+    const nm = it.name.length > 30 ? it.name.slice(0, 29) + '…' : it.name;
+    return `<g ${tip(it.tip)}><text x="${L - 12}" y="${y + 18}" text-anchor="end" class="${me ? 'prk me' : 'prk'}">${esc(nm)}</text>
+      <rect x="${L}" y="${y + 6}" width="${Math.max(2, x(it.v) - L)}" height="16" rx="4" fill="${col}" opacity="${me ? 1 : .75}"/>
+      <text x="${x(it.v) + 8}" y="${y + 18}" class="prv${me ? ' me' : ''}">${fmt(it.v)}</text></g>`;
+  }).join('');
+  const avgL = avg != null ? `<line x1="${x(avg)}" x2="${x(avg)}" y1="${T - 6}" y2="${T + items.length * rowH}" stroke="#F3F2FA" stroke-dasharray="4 4" opacity=".55"/><text x="${x(avg) + 4}" y="${T + items.length * rowH + 28}" class="ax">Promedio peers ${fmt(avg)}</text>` : '';
+  return `<svg viewBox="0 0 ${W} ${H + 10}" class="prank" role="img" aria-label="Ranking contra peers">${bands}${grid}${rows}${avgL}</svg>`;
+}
+// Comparativo por pilar: puntos de cada peer, promedio y tu empresa sobre la escala 0–5
+function peerPillarChart(r, rows) {
+  const W = 720, L = 130, Rr = 30, T = 16, rowH = 54, iw = W - L - Rr, H = T + 3 * rowH + 24;
+  const x = v => L + iw * clamp(v / 5);
+  const out = PILLARS.map((P, i) => {
+    const y = T + i * rowH + 22;
+    const pts = rows.filter(z => z.c[P.id] != null);
+    const av = avgOf(pts.map(z => z.c[P.id])); const mine = r.pillars[P.id].score;
+    return `<text x="${L - 14}" y="${y + 4}" text-anchor="end" class="prk">${P.name}</text>
+      <line x1="${L}" x2="${W - Rr}" y1="${y}" y2="${y}" stroke="${CH.grid2}" stroke-width="6" stroke-linecap="round"/>
+      ${pts.map(z => `<circle cx="${x(z.c[P.id]).toFixed(1)}" cy="${y}" r="6" fill="#9AAACB" opacity=".75" stroke="${CH.surface}" stroke-width="2" ${tip(z.p.name + ' · ' + P.name + ' ' + fmt(z.c[P.id]))}/>`).join('')}
+      ${av != null ? `<rect x="${(x(av) - 6).toFixed(1)}" y="${y - 6}" width="12" height="12" transform="rotate(45 ${x(av).toFixed(1)} ${y})" fill="#F3F2FA" stroke="${CH.surface}" stroke-width="2" ${tip('Promedio peers · ' + P.name + ' ' + fmt(av))}/>` : ''}
+      ${mine != null ? `<circle cx="${x(mine).toFixed(1)}" cy="${y}" r="9" fill="${P.color}" stroke="#F5C400" stroke-width="3" ${tip('Tu empresa · ' + P.name + ' ' + fmt(mine))}/>` : ''}
+      ${!pts.length ? `<text x="${W - Rr}" y="${y - 12}" text-anchor="end" class="ax">Sin datos de peers para este pilar</text>` : ''}`;
+  }).join('');
+  const axis = [0, 1, 2, 3, 4, 5].map(v => `<text x="${x(v)}" y="${H - 4}" text-anchor="middle" class="ax">${v}</text>`).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" class="prank" role="img" aria-label="Comparativo por pilar">${out}${axis}</svg>`;
+}
+
+function vPeers() {
+  const d = curData(), rv = curReview();
+  const isAdmin = S.role === 'admin';
+  const r = compute(d, rv);
+  const sm = peerSummary(d, rv);
+  const sector = d.profile?.sector || '';
+  const editor = isAdmin ? peerEditor(rv) : '';
+  if (!peersVisible(rv) || !sm) {
+    return head('Comparativo con peers', `${esc(d.profile?.name || '')}${sector ? ' · ' + esc(sector) : ''}`) + editor +
+      `<div class="card"><div class="empty">${isAdmin ? 'Agrega al menos un peer con su calificación para ver el comparativo.' : 'Aztlan está preparando tu comparativo con empresas de tu sector. Aquí verás cómo te comparas con ellas y en qué temas enfocarte.'}</div></div>`;
+  }
+  const items = [{ name: d.profile?.name || 'Tu empresa', v: me(r), me: true, tip: 'Tu empresa · calificación combinada ' + fmt(r.combined) + ' / 5' },
+    ...sm.rows.map(z => ({ name: z.p.name, v: z.c.overall, tip: `${z.p.name} · ${(PEER_SRC[z.p.src] || PEER_SRC.otra).name}${z.p.year ? ' ' + z.p.year : ''}: ${z.c.fromThemes ? 'evaluación por tema' : z.p.score} → ${fmt(z.c.overall)} / 5` }))];
+  const b = S.bench?.sectors?.[sector];
+  if (b && b.n >= 3) items.push({ name: `Promedio plataforma (${b.n})`, v: b.avg, ref: true, tip: `Promedio anónimo de ${b.n} empresas de ${sector} evaluadas en la plataforma` });
+  items.sort((a, c) => c.v - a.v);
+  const gapBest = r.combined - sm.best.c.overall, gapAvg = r.combined - sm.avg;
+  const thRows = sm.rows.filter(z => z.c.themes && Object.keys(z.c.themes).length);
+  const thAvg = {}; THEMES.forEach(t => { const v = avgOf(thRows.map(z => z.c.themes[t.id])); thAvg[t.id] = { score: v }; });
+  const thBest = {}; THEMES.forEach(t => { const vs = thRows.map(z => ({ v: z.c.themes[t.id], n: z.p.name })).filter(z => z.v != null); thBest[t.id] = vs.length ? vs.reduce((a, c) => (c.v > a.v ? c : a)) : null; });
+  const gaps = THEMES.map(t => ({ t, mine: r.themes[t.id].score ?? 0, avg: thAvg[t.id].score, best: thBest[t.id], mat: r.themes[t.id].mat })).filter(g => g.avg != null).map(g => ({ ...g, gap: g.mine - g.avg }));
+  const focus = gaps.filter(g => g.gap < -0.05).sort((a, c) => (a.gap * c.mat === 0 ? 0 : 0) || (a.gap * a.mat) - (c.gap * c.mat)).slice(0, 4);
+  const sgn = v => (v >= 0 ? '+' : '−') + fmt(Math.abs(v));
+  return head('Comparativo con peers', `${esc(d.profile?.name || '')}${sector ? ' · ' + esc(sector) : ''} · Escala 0–5`, isAdmin ? '<button class="btn ghost" data-a="peernew">+ Agregar peer</button>' : '') + `
+  <section class="kpis">
+    <div class="kpi"><label>Tu calificación</label><b>${fmt(r.combined)}</b>${badge(rating(r.combined), 1)}</div>
+    <div class="kpi"><label>Posición</label><b>${sm.pos}<small class="muted"> de ${sm.n}</small></b><span class="muted small">entre tus peers</span></div>
+    <div class="kpi"><label>Vs promedio peers</label><b class="${gapAvg >= 0 ? 'pos' : 'neg'}">${sgn(gapAvg)}</b><span class="muted small">promedio ${fmt(sm.avg)}</span></div>
+    <div class="kpi"><label>Vs líder</label><b class="${gapBest >= 0 ? 'pos' : 'neg'}">${sgn(gapBest)}</b><span class="muted small">${esc(sm.best.p.name)} · ${fmt(sm.best.c.overall)}</span></div>
+  </section>
+  <div class="card"><div class="ch"><h3>Ranking</h3><div class="legend"><span><i style="background:#F5C400"></i>Tu empresa</span><span><i style="background:#9AAACB"></i>Peers</span>${b && b.n >= 3 ? '<span><i style="background:#5BAE7E"></i>Plataforma</span>' : ''}<span><i class="dash"></i>Promedio peers</span></div></div>
+    ${peerRankChart(items, sm.avg)}
+    <p class="muted small">Calificaciones externas convertidas a la escala 0–5 de Aztlan. Pasa el cursor por cada barra para ver la fuente y el valor original.</p></div>
+  <div class="card"><div class="ch"><h3>Por pilar</h3><div class="legend"><span><i style="background:#F5C400"></i>Tu empresa</span><span><i style="background:#9AAACB"></i>Cada peer</span><span><i style="background:#F3F2FA"></i>Promedio</span></div></div>${peerPillarChart(r, sm.rows)}</div>
+  ${gaps.length ? `<div class="grid2 g-even g-top">
+    <div class="card"><div class="ch"><h3>Radar vs peers</h3><div class="legend"><span><i style="background:#F5C400"></i>Tu empresa</span><span><i class="dash"></i>Promedio peers</span></div></div>${radar(r, { themes: thAvg })}<p class="muted small center">Temas con evaluación Aztlan de ${thRows.length} peer(s).</p></div>
+    <div class="card"><h3>Dónde enfocarte para alcanzarlos</h3>${focus.length ? `<ul class="toplist">${focus.map(g => `<li><div><b>${g.t.name}</b> ${matIcon(g.mat)}<div class="muted small">Tú ${fmt(g.mine)} · promedio peers ${fmt(g.avg)}${g.best ? ' · mejor: ' + esc(g.best.n) + ' ' + fmt(g.best.v) : ''}</div><p class="small">${g.t.tip}</p><button class="link" data-a="gotheme" data-t="${g.t.id}">Ver qué debes cumplir →</button></div><span class="neg num">${sgn(g.gap)}</span></li>`).join('')}</ul>` : '<p class="muted">Estás al nivel o por encima del promedio de tus peers en todos los temas evaluados.</p>'}</div>
+  </div>
+  <div class="card"><h3>Brecha por tema</h3><table class="lt"><thead><tr><th>Tema</th><th>Materialidad</th><th class="r">Tú</th><th class="r">Promedio peers</th><th class="r">Mejor peer</th><th class="r">Brecha</th></tr></thead><tbody>
+    ${gaps.sort((a, c) => a.gap - c.gap).map(g => `<tr class="click" data-a="gotheme" data-t="${g.t.id}"><td>${g.t.name}</td><td>${matIcon(g.mat)}</td><td class="r"><b>${fmt(g.mine)}</b></td><td class="r">${fmt(g.avg)}</td><td class="r">${g.best ? fmt(g.best.v) : '—'}</td><td class="r ${g.gap >= 0 ? 'pos' : 'neg'}"><b>${sgn(g.gap)}</b></td></tr>`).join('')}
+  </tbody></table></div>` : ''}
+  <div class="card"><h3>Peers y fuentes</h3><table class="tbl"><thead><tr><th>Empresa</th><th>Fuente</th><th class="r">Calificación original</th><th class="r">Equivalente 0–5</th><th>Nivel</th><th class="r">E</th><th class="r">S</th><th class="r">G</th>${isAdmin ? '<th></th>' : ''}</tr></thead><tbody>
+    ${(rv.peers || []).map(p => { const c = peerCalc(p, materiality(d.profile)); const s = PEER_SRC[p.src] || PEER_SRC.otra; return `<tr><td><b>${esc(p.name)}</b>${p.ticker ? ` <span class="muted small">${esc(p.ticker)}</span>` : ''}${p.note ? `<div class="muted small">${esc(p.note)}</div>` : ''}${p.url ? `<div><a class="small" href="${esc(p.url)}" target="_blank" rel="noopener">Fuente ↗</a></div>` : ''}</td><td>${s.name}${p.year ? ` <span class="muted small">${esc(p.year)}</span>` : ''}</td><td class="r">${c.fromThemes ? 'Por tema' : esc(p.score || '—')}</td><td class="r"><b>${fmt(c.overall)}</b></td><td>${badge(rating(c.overall), 1)}</td><td class="r">${fmt(c.E)}</td><td class="r">${fmt(c.S)}</td><td class="r">${fmt(c.G)}</td>${isAdmin ? `<td class="nowrap"><button class="link" data-a="peeredit" data-id="${p.id}">Editar</button> · <button class="link${S.peerDelArm === p.id ? ' neg' : ''}" data-a="peerdel" data-id="${p.id}">${S.peerDelArm === p.id ? '¿Confirmar?' : 'Eliminar'}</button></td>` : ''}</tr>`; }).join('')}
+  </tbody></table>
+  <p class="muted small">Cada calificadora usa su propia metodología, así que la conversión es una referencia. La comparación más precisa es la <b>Evaluación Aztlan</b>, que califica al peer con los mismos 15 temas y la materialidad de tu sector a partir de su información pública (informe de sostenibilidad, reporte anual, BMV).</p></div>` + editor;
+  function me(x) { return x.combined; }
+}
+
+function peerEditor(rv) {
+  const f = S.peerDraft || (S.peerDraft = { src: 'aztlan', themes: {} });
+  const s = PEER_SRC[f.src] || PEER_SRC.aztlan;
+  const val = k => esc(f[k] ?? '');
+  const scoreFld = s.only
+    ? `<select data-pd="score"><option value="">—</option>${s.letters.map(l => `<option ${f.score === l ? 'selected' : ''}>${l}</option>`).join('')}</select>`
+    : `<input data-pd="score" value="${val('score')}" placeholder="${s.ph}">`;
+  const conv = f.score ? peerNum(f.src, f.score) : null;
+  return `<div class="card peered"><div class="ch"><h3>${f.id ? 'Editar peer' : 'Agregar peer'}</h3>
+    <label class="chk"><input type="checkbox" data-peershare ${rv.peersShare !== false ? 'checked' : ''}> Visible para el cliente</label></div>
+    <div class="pform">
+      <label class="fld"><span>Empresa</span><input data-pd="name" value="${val('name')}" placeholder="Razón social o nombre comercial"></label>
+      <label class="fld"><span>Clave BMV / ticker (opcional)</span><input data-pd="ticker" value="${val('ticker')}" placeholder="Ej. AMX"></label>
+      <label class="fld"><span>Fuente de la calificación</span><select data-pd="src">${Object.entries(PEER_SRC).map(([k, v]) => `<option value="${k}" ${f.src === k ? 'selected' : ''}>${v.name}</option>`).join('')}</select></label>
+      <label class="fld"><span>Año</span><input data-pd="year" value="${val('year')}" placeholder="${new Date().getFullYear()}"></label>
+      <label class="fld"><span>Calificación ESG (${s.scale})</span>${scoreFld}<em id="pconv" class="${conv == null && f.score ? 'neg' : 'muted'} small">${conv != null ? `Equivale a ${fmt(conv)} / 5 en la escala Aztlan` : f.score ? 'Valor fuera de la escala de esta fuente' : ''}</em></label>
+      ${s.pillars ? ['E', 'S', 'G'].map(k => `<label class="fld"><span>${pillarOf(k).name} (opcional)</span><input data-pd="${k}" value="${val(k)}" placeholder="${s.scale}"></label>`).join('') : ''}
+      <label class="fld"><span>Enlace a la fuente (opcional)</span><input data-pd="url" value="${val('url')}" placeholder="https://"></label>
+      <label class="fld"><span>Nota (opcional)</span><input data-pd="note" value="${val('note')}" placeholder="Ej. Informe de sostenibilidad 2025"></label>
+    </div>
+    ${s.themes ? `<details class="pthemes" ${Object.values(f.themes || {}).some(v => v !== '') ? 'open' : ''}><summary>Evaluación Aztlan por tema (0 a 5) · si la llenas, la calificación y los pilares se calculan solos con la materialidad del sector del cliente</summary>
+      <div class="ptgrid">${THEMES.map(t => `<label><i class="pdot" style="background:${pillarOf(t.p).color}"></i><span>${t.name}</span><input data-pdt="${t.id}" value="${esc(f.themes?.[t.id] ?? '')}" placeholder="0–5" inputmode="decimal"></label>`).join('')}</div></details>` : ''}
+    <div class="prow"><button class="btn" data-a="peersave">${f.id ? 'Guardar cambios' : 'Agregar peer'}</button>${f.id || f.name ? '<button class="btn ghost" data-a="peercancel">Cancelar</button>' : ''}<span class="muted small">Sugerencia: usa 3 a 6 empresas del mismo sector y tamaño, de preferencia emisoras de la BMV con informe de sostenibilidad público.</span></div>
+  </div>`;
+}
+function toEditor() { setTimeout(() => { const el = document.querySelector('.peered'); if (el) { el.scrollIntoView({ block: 'start', behavior: 'smooth' }); el.querySelector('[data-pd=name]')?.focus({ preventScroll: true }); } }, 30); }
+function peerSave() {
+  const f = S.peerDraft || {}; const s = PEER_SRC[f.src] || PEER_SRC.aztlan;
+  if (!(f.name || '').trim()) { document.querySelector('[data-pd=name]')?.focus(); return; }
+  const hasTh = s.themes && Object.values(f.themes || {}).some(v => v !== '' && v != null);
+  if (!hasTh && peerNum(f.src, f.score) == null) { document.querySelector('[data-pd=score]')?.focus(); return; }
+  const rv = (S.reviews[S.cid] ||= {}); rv.peers ||= [];
+  const clean = { id: f.id || 'p' + Date.now().toString(36), name: f.name.trim(), ticker: (f.ticker || '').trim(), src: f.src, year: (f.year || '').trim(), score: (f.score || '').trim(), E: f.E || '', S: f.S || '', G: f.G || '', url: (f.url || '').trim(), note: (f.note || '').trim(), themes: s.themes ? { ...(f.themes || {}) } : {}, at: nowIso() };
+  const i = rv.peers.findIndex(p => p.id === clean.id);
+  if (i >= 0) rv.peers[i] = clean; else rv.peers.push(clean);
+  S.peerDraft = { src: f.src, themes: {} }; markReviewDirty(); render();
 }
 
 // ===================== EVENTOS =====================
@@ -1829,6 +2025,11 @@ document.addEventListener('click', e => {
   else if (a === 'reqdone') { d.reqDone ||= {}; d.reqDone[b.dataset.id] = nowIso(); markDirty(); render(); }
   else if (a === 'requndo') { if (d.reqDone) delete d.reqDone[b.dataset.id]; markDirty(); render(); }
   else if (a === 'addlog') { addLog(); }
+  else if (a === 'peersave') { peerSave(); }
+  else if (a === 'peercancel') { S.peerDraft = { src: 'aztlan', themes: {} }; render(); }
+  else if (a === 'peeredit') { const p = (S.reviews[S.cid]?.peers || []).find(x => x.id === b.dataset.id); if (p) { S.peerDraft = JSON.parse(JSON.stringify({ ...p, themes: p.themes || {} })); render(); toEditor(); } }
+  else if (a === 'peernew') { S.peerDraft = { src: 'aztlan', themes: {} }; render(); toEditor(); }
+  else if (a === 'peerdel') { const rv = S.reviews[S.cid]; const p = rv.peers.find(x => x.id === b.dataset.id); if (!p) return; if (S.peerDelArm !== p.id) { S.peerDelArm = p.id; keepScroll(render); return; } S.peerDelArm = null; rv.peers = rv.peers.filter(x => x.id !== b.dataset.id); markReviewDirty(); keepScroll(render); }
   else if (a === 'logdone') { const rv = S.reviews[S.cid]; const e = rv.log.find(x => x.id === b.dataset.id); e.done = !e.done; markReviewDirty(); render(); }
   else if (a === 'logdel') { const rv = S.reviews[S.cid]; rv.log = rv.log.filter(x => x.id !== b.dataset.id); markReviewDirty(); render(); }
   else if (a === 'notesseen') { d.seen ||= {}; d.seen._notes = nowIso(); markDirty(); render(); }
@@ -1891,6 +2092,9 @@ document.addEventListener('input', e => {
   if (t.dataset.pf) { d.profile ||= {}; d.profile[t.dataset.pf] = t.value; markDirty(); if (t.tagName === 'SELECT') render(); return; }
   if (t.dataset.ev || t.dataset.note) { const q = t.dataset.ev || t.dataset.note; d.answers ||= {}; d.answers[q] = { ...(d.answers[q] || {}), [t.dataset.ev ? 'ev' : 'note']: t.value, ...(t.dataset.ev ? { evAt: nowIso() } : {}) }; markDirty(); return; }
   if (t.dataset.msg) { (S.drafts ||= {})[t.dataset.msg] = t.value; return; }
+  if (t.dataset.pd) { const f = (S.peerDraft ||= { src: 'aztlan', themes: {} }); f[t.dataset.pd] = t.value; if (t.dataset.pd === 'src') { f.score = ''; f.E = f.S = f.G = ''; } if (t.tagName === 'SELECT') keepScroll(render); else if (t.dataset.pd === 'score') { const el = document.getElementById('pconv'); if (el) { const c = peerNum(f.src, f.value ?? t.value); el.className = c == null && t.value ? 'neg small' : 'muted small'; el.textContent = c != null ? 'Equivale a ' + fmt(c) + ' / 5 en la escala Aztlan' : t.value ? 'Valor fuera de la escala de esta fuente' : ''; } } return; }
+  if (t.dataset.pdt) { const f = (S.peerDraft ||= { src: 'aztlan', themes: {} }); (f.themes ||= {})[t.dataset.pdt] = t.value.trim(); return; }
+  if (t.dataset.peershare !== undefined) { const rv = (S.reviews[S.cid] ||= {}); rv.peersShare = t.checked; markReviewDirty(); return; }
   if (t.dataset.log) { (S.logDraft ||= {})[t.dataset.log] = t.type === 'checkbox' ? t.checked : t.value; return; }
   if (t.dataset.num) { d.answers ||= {}; d.answers[t.dataset.num] = { ...(d.answers[t.dataset.num] || {}), v: t.value.trim() }; markDirty(); const c = t.closest('.qc'); if (c) c.classList.toggle('done', !!t.value.trim()); return; }
   if (t.dataset.pub) { d.answers ||= {}; d.answers[t.dataset.pub] = { ...(d.answers[t.dataset.pub] || {}), pub: t.checked }; markDirty(); return; }
@@ -1980,6 +2184,7 @@ function downloadReport() {
   <h2>Calificación por pilar y tema</h2><table><tr><th>Pilar / tema</th><th>Materialidad</th><th class="r">Score</th><th>Nivel</th></tr>
   ${PILLARS.map(p => `<tr><th>${p.name}</th><th></th><th class="r">${fmt(r.pillars[p.id].score)}</th><th>${rating(r.pillars[p.id].score)?.name || ''}</th></tr>${THEMES.filter(t => t.p === p.id).map(t => `<tr><td>${t.name}</td><td>${['', 'Baja', 'Media', 'Alta'][r.themes[t.id].mat]}</td><td class="r">${fmt(r.themes[t.id].score)}</td><td>${rating(r.themes[t.id].score)?.name || ''}</td></tr>`).join('')}`).join('')}
   <tr><th>Controversias</th><th></th><th class="r">${fmt(r.contro)}</th><th></th></tr><tr><th>ESG</th><th></th><th class="r">${fmt(r.esg)}</th><th></th></tr><tr><th>ESG combinada</th><th></th><th class="r">${fmt(r.combined)}</th><th>${rt.name}</th></tr></table>
+  ${(() => { const ps = peersVisible(rv) ? peerSummary(d, rv) : null; if (!ps) return ''; return `<h2>Comparativo con peers</h2><p>Posición <b>${ps.pos} de ${ps.n}</b> · promedio peers ${fmt(ps.avg)} · líder ${esc(ps.best.p.name)} ${fmt(ps.best.c.overall)}</p><table><tr><th>Empresa</th><th>Fuente</th><th class="r">Original</th><th class="r">Equivalente 0–5</th><th>Nivel</th></tr><tr><td><b>${esc(d.profile?.name || '')}</b></td><td>Aztlan</td><td class="r">—</td><td class="r"><b>${fmt(r.combined)}</b></td><td>${rt.name}</td></tr>${ps.rows.map(z => `<tr><td>${esc(z.p.name)}</td><td>${(PEER_SRC[z.p.src] || PEER_SRC.otra).name}${z.p.year ? ' ' + esc(z.p.year) : ''}</td><td class="r">${z.c.fromThemes ? 'Por tema' : esc(z.p.score)}</td><td class="r">${fmt(z.c.overall)}</td><td>${rating(z.c.overall)?.name || ''}</td></tr>`).join('')}</table><p class="muted">Calificaciones externas convertidas a la escala 0–5 de Aztlan como referencia.</p>`; })()}
   <h2>Proyección</h2><p>${proj.map((v, i) => (i ? 'Fase ' + i : 'Hoy') + ': <b>' + fmt(v) + '</b> (' + rating(v).name + ')').join(' → ')}</p>
   <h2>Plan de trabajo</h2>${[1, 2, 3].map(ph => `<h3>${PHASES[ph].name} (${PHASES[ph].when})</h3><table><tr><th>Acción</th><th>Tema</th><th>Prioridad</th><th class="r">Impacto</th></tr>${items.filter(i => i.phase === ph).map(i => `<tr><td>${esc(i.action)}</td><td>${THEME[i.theme].name}</td><td>${i.priority}</td><td class="r">+${fmt(i.uplift, 2)}</td></tr>`).join('')}</table>`).join('')}
   ${rv.notes ? `<h2>Comentarios de Aztlan</h2><p>${esc(rv.notes).replace(/\n/g, '<br>')}</p>` : ''}
